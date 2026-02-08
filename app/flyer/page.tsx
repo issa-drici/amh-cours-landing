@@ -1,4 +1,4 @@
-import { Play, Sparkles, CheckCircle2, QrCode, Phone } from "lucide-react";
+import { Play, Sparkles, CheckCircle2, Phone } from "lucide-react";
 import Image from "next/image";
 
 export default function Flyer() {
@@ -108,10 +108,15 @@ export default function Flyer() {
                             </div>
                         </div>
 
-                        {/* QR CODE PLACEHOLDER */}
+                        {/* QR CODE */}
                         <div className="bg-white p-2 rounded-xl border-2 border-dashed border-emerald-900/20 flex flex-col items-center gap-2 w-32 shrink-0">
-                            <div className="w-24 h-24 bg-stone-100 rounded-lg flex items-center justify-center text-stone-400">
-                                <QrCode size={40} />
+                            <div className="relative w-24 h-24 bg-white rounded-lg overflow-hidden">
+                                <Image
+                                    src="/images/qrcode.png"
+                                    alt="Scanner pour rejoindre"
+                                    fill
+                                    className="object-contain"
+                                />
                             </div>
                             <span className="text-[10px] font-bold text-emerald-900 uppercase">Scanner ici</span>
                         </div>

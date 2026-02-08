@@ -54,3 +54,9 @@ h6 {
   pointer-events: none;
   mix-blend-mode: multiply;
 }
+
+/* Particules légères - GPU-accelerated, pas de JS */
+@keyframes particle-float {
+  0%, 100% { opacity: 0.5; transform: translate(0, 0); }
+  50% { opacity: 1; transform: translate(6px, -6px); }
+}

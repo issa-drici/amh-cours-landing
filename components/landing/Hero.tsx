@@ -2,54 +2,36 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { PlayCircle, Play, BookOpen, ScrollText } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookOpen, Play, ScrollText } from "lucide-react";
+
+/* 40 particules fixes, positions pré-calculées (évite le re-render) */
+const PARTICLE_CLUSTERS = [
+    { x: 15, y: 25 }, { x: 80, y: 20 }, { x: 50, y: 60 }, { x: 15, y: 80 }, { x: 85, y: 75 }
+];
+const SEED = 12345; // Pour des positions stables
+function seededRandom(seed: number) {
+    return () => {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+    };
+}
+const PARTICLE_DATA = (() => {
+    const r = seededRandom(SEED);
+    return Array.from({ length: 40 }, (_, i) => {
+        const c = PARTICLE_CLUSTERS[i % 5];
+        const spreadX = (r() + r() + r() - 1.5) * 12;
+        const spreadY = (r() + r() + r() - 1.5) * 12;
+        return {
+            x: Math.max(0, Math.min(100, c.x + spreadX)),
+            y: Math.max(0, Math.min(100, c.y + spreadY)),
+            duration: 18 + r() * 12,
+            delay: r() * 8,
+            size: r() > 0.9 ? 5 : r() > 0.6 ? 4 : 3
+        };
+    });
+})();
 
 export function Hero() {
-    const [particles, setParticles] = useState<{ x: number, y: number, duration: number, delay: number, moveX: number, moveY: number, size: number }[]>([]);
-    const [dust, setDust] = useState<{ x: number, y: number, duration: number, delay: number, moveY: number }[]>([]);
-
-    useEffect(() => {
-        // "Galaxies" - Dense particle clusters
-        const clusters = [
-            { x: 15, y: 25 }, // Top Left Galaxy
-            { x: 80, y: 20 }, // Top Right Galaxy
-            { x: 50, y: 60 }, // Central Nebula
-            { x: 15, y: 80 }, // Bottom Left Cluster
-            { x: 85, y: 75 }  // Bottom Right Cluster
-        ];
-
-        setParticles(Array.from({ length: 1500 }, (_, i) => {
-            const cluster = clusters[i % clusters.length];
-
-            // Gaussian-like concentration
-            const spreadX = (Math.random() + Math.random() + Math.random() - 1.5) * 12;
-            const spreadY = (Math.random() + Math.random() + Math.random() - 1.5) * 12;
-
-            const x = cluster.x + spreadX;
-            const y = cluster.y + spreadY;
-
-            return {
-                x: Math.max(0, Math.min(100, x)),
-                y: Math.max(0, Math.min(100, y)),
-                duration: Math.random() * 10 + 20, // Slow float
-                delay: Math.random() * 10,
-                moveX: (Math.random() - 0.5) * 10, // Gentle drift
-                moveY: (Math.random() - 0.5) * 10, // Gentle drift
-                // HIGH VISIBILITY: Min 3px, Max 5px
-                size: Math.random() > 0.95 ? 5 : Math.random() > 0.7 ? 4 : 3
-            };
-        }));
-
-        setDust(Array.from({ length: 8 }, () => ({
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            duration: Math.random() * 25 + 20,
-            delay: Math.random() * 10,
-            moveY: Math.random() * -50
-        })));
-    }, []);
-
     return (
         <section className="relative min-h-screen w-full overflow-hidden bg-stone-50 text-stone-900 border-b border-stone-200">
 
@@ -86,57 +68,22 @@ export function Hero() {
                 </motion.div>
             </div>
 
-            {/* Ambient Particles - High Visibility Layer (z-5) */}
+            {/* Particules légères - CSS uniquement, ~40 éléments au lieu de 1500+ */}
             <div className="absolute inset-0 z-[5] overflow-hidden pointer-events-none h-full w-full">
-                {particles.map((p, i) => (
-                    <motion.div
+                {PARTICLE_DATA.map((p, i) => (
+                    <div
                         key={i}
                         style={{
                             top: p.y + "%",
                             left: p.x + "%",
-                            width: p.size + 'px',
-                            height: p.size + 'px',
-                        }}
-                        initial={{ opacity: 0 }}
-                        animate={{
-                            opacity: [0.4, 1, 0.4], // High visibility baseline
-                            y: [0, p.moveY],
-                            x: [0, p.moveX],
-                        }}
-                        transition={{
-                            duration: p.duration,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: p.delay,
+                            width: p.size + "px",
+                            height: p.size + "px",
+                            animation: `particle-float ${p.duration}s ease-in-out ${p.delay}s infinite`,
                         }}
                         className={cn(
                             "absolute rounded-full shadow-sm",
-                            // More solid colors for visibility
-                            p.size > 3 ? "bg-amber-400 blur-[0.5px] shadow-amber-400/50" : "bg-amber-500/80 blur-[0px]"
+                            p.size > 3 ? "bg-amber-400 shadow-amber-400/50" : "bg-amber-500/80"
                         )}
-                    />
-                ))}
-
-                {/* Subtle Dust */}
-                {dust.map((d, i) => (
-                    <motion.div
-                        key={`dust-${i}`}
-                        style={{
-                            top: d.y + "%",
-                            left: d.x + "%",
-                        }}
-                        initial={{ opacity: 0 }}
-                        animate={{
-                            opacity: [0.1, 0.3, 0.1],
-                            y: [0, d.moveY],
-                        }}
-                        transition={{
-                            duration: d.duration,
-                            repeat: Infinity,
-                            ease: "linear",
-                            delay: d.delay,
-                        }}
-                        className="absolute w-32 h-32 bg-emerald-600/10 rounded-full blur-[40px]"
                     />
                 ))}
             </div>
